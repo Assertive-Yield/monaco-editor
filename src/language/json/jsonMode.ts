@@ -170,14 +170,14 @@ const richEditConfiguration: languages.LanguageConfiguration = {
 	},
 
 	brackets: [
-		// TASK-2524: Replace CodeMirror with Monaco editor.
+		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 		// Disable brackets as they have a higher priority in the tokenization process compared to custom variables and placeholders, e.g., {{ var1 }} or [[ placeholder1 ]], and affect bracket coloring.
 		// ['{', '}'],
 		// ['[', ']']
 	],
 
 	autoClosingPairs: [
-		// TASK-2524: Replace CodeMirror with Monaco editor.
+		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 		// Prevent auto-closing for curly and square brackets. It creates issues and affects search functionality for variables when autosuggestion is triggered.
 		// Requires deep investigation
 		// { open: '{', close: '}', notIn: ['string'] },

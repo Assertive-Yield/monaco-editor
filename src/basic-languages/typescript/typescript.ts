@@ -15,7 +15,7 @@ export const conf: languages.LanguageConfiguration = {
 	},
 
 	brackets: [
-		// TASK-2524: Replace CodeMirror with Monaco editor.
+		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 		// Disable brackets as they have a higher priority in the tokenization process compared to custom variables, e.g., {{ var1 }}, and affect bracket coloring.
 		// ['{', '}'],
 		['[', ']'],
@@ -59,7 +59,7 @@ export const conf: languages.LanguageConfiguration = {
 	],
 
 	autoClosingPairs: [
-		// TASK-2524: Replace CodeMirror with Monaco editor.
+		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 		// Prevent auto-closing for curly brackets. It creates issues and affects search functionality for variables when autosuggestion is triggered.
 		// Requires deep investigation
 		// { open: '{', close: '}' },
@@ -228,7 +228,7 @@ export const language = {
 	// The main tokenizer for our languages
 	tokenizer: {
 		root: [
-			// TASK-2524: Replace CodeMirror with Monaco editor.
+			// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 			// Added token regexp for coloring variables e.g. {{ var1 }}
 			[/\{\{\s(([_a-zA-Z0-9][_a-zA-Z0-9 ]*[_a-zA-Z0-9])|[_a-zA-Z0-9])\s\}\}/, 'keyword'],
 			[/[{}]/, 'delimiter.bracket'],

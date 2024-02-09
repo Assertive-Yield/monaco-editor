@@ -109,7 +109,7 @@ export class DiagnosticsAdapter<T extends ILanguageWorkerWithDiagnostics> {
 				const markers = diagnostics.map((d) => toDiagnostics(resource, d));
 				let model = editor.getModel(resource);
 
-				// TASK-2524: Replace CodeMirror with Monaco editor.
+				// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 				// We need to track when validation is finished.
 				// However, "onDidChangeMarkers" only runs when the marker count is greater than 0.
 				// There is not possibility to add handler like "onValidationSuccess/onValidationFailure," etc.

@@ -335,7 +335,7 @@ export class DiagnosticsAdapter extends Adapter {
 			return;
 		}
 
-		// TASK-2524: Replace CodeMirror with Monaco editor.
+		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 		// We need to track when validation is finished.
 		// However, "onDidChangeMarkers" only runs when the marker count is greater than 0.
 		// There is not possibility to add handler like "onValidationSuccess/onValidationFailure," etc.
@@ -354,7 +354,7 @@ export class DiagnosticsAdapter extends Adapter {
 		let diagStart = diag.start || 0;
 		const diagLength = diag.length || 1;
 
-		// TASK-2524: Replace CodeMirror with Monaco editor.
+		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 		// In some cases, such as defining "Custom Javascript" variables, a script may contain a single unnamed function like "function() {...}".
 		// Alternatively, the script can contain just a single JS object without assigning it to a variable.
 		// In such cases, we wrap the code with circular brackets like (function() {...}) or ({...}) before validation.
@@ -1049,7 +1049,7 @@ export class FormatAdapter
 				...edit,
 				span: {
 					...edit.span,
-					// TASK-2524: Replace CodeMirror with Monaco editor.
+					// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 					// In some cases, such as defining "Custom Javascript" variables, a script may contain a single unnamed function like "function() {...}".
 					// Alternatively, the script can contain just a single JS object without assigning it to a variable.
 					// In such cases, we wrap the code with circular brackets like (function() {...}) or ({...}) before validation.

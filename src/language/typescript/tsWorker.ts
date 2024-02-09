@@ -117,7 +117,7 @@ export class TypeScriptWorker implements ts.LanguageServiceHost, ITypeScriptWork
 		return text;
 	}
 
-	// TASK-2524: Replace CodeMirror with Monaco editor.
+	// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 	// Replace variables with valid markers before validation.
 	// In some cases, like defining "Custom Javascript" variables, we need to have a script containing single unnamed functions like "function() {...}".
 	// Alternatively, the script can contain just a single JS object without assigning it to a variable.

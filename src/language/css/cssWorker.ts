@@ -221,7 +221,7 @@ export class CSSWorker {
 		const updatedEdits = textEdits.map((edit) => {
 			return {
 				...edit,
-				// TASK-2524: Replace CodeMirror with Monaco editor.
+				// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 				// Replace markers with variables after validation
 				// Remove inline styles id
 				newText: replaceMarkersWithVariables(edit.newText.replace(INLINE_CSS_ID, '').trim())
@@ -230,7 +230,7 @@ export class CSSWorker {
 		return Promise.resolve(updatedEdits);
 	}
 
-	// TASK-2524: Replace CodeMirror with Monaco editor.
+	// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 	// Replace variables with valid markers before validation.
 	// In some cases we need to define inline styles.
 	// E.g.

@@ -7,13 +7,13 @@ const MARKER_REGEX = /VR_([^\s]+)_VR/g;
 export const CIRCLE_BRACKET_DIAGNOSTIC_OFFSET = 1;
 export const INLINE_CSS_ID = '#inline-styles-configuration';
 
-// TASK-2524: Replace CodeMirror with Monaco editor.
+// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 // Converts variables definitions to valid identifiers {{ Window Height }} to VR_Window_Height_VR
 // Note: identifier length should match variable's length. In opposite case diagnostic markers will have incorrect positions.
 export const replaceVariablesWithMarkers = (text: string) =>
 	text.replace(VARIABLE_REGEX, (_, variable) => `VR_${variable.trim().replace(/\s/g, '_')}_VR`);
 
-// TASK-2524: Replace CodeMirror with Monaco editor.
+// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 // Wraps placeholders and variables with quotes, e.g., {{ var1 }} becomes "{ var1 }" and [[ placeholder1 ]] becomes "[ placeholder1 ]"
 // Note: The length of wrapped placeholders and variables should match the initial length of placeholders and variables.
 // Cut the first "[" and last "]" of placeholder definitions because quotes take their positions while diagnostics performing. The same applies to variables; cut the first "{" and last "}".

@@ -162,7 +162,7 @@ export class JSONWorker {
 		return Promise.resolve(this._languageService.getMatchingSchemas(document, jsonDocument));
 	}
 
-	// TASK-2524: Replace CodeMirror with Monaco editor.
+	// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 	// Replace variables and placeholder with valid JSON values before validation.
 	// Simply wrap them with quotes e.g. "{{ var1 }}" "[[ placeholder1 ]]"
 	private _convertToValidJSON(text: string) {
