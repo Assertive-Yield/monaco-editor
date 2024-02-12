@@ -24,8 +24,9 @@ export const replaceVariablesWithMarkers = (
 	initialMapping: TMarkersToVariablesMapping
 ) => {
 	const markersToVariables: TMarkersToVariablesMapping = { ...initialMapping };
-	const variablesToMarkersIds: TVariablesToMarkersMapping = {};
-
+	const variablesToMarkersIds: TVariablesToMarkersMapping = Object.fromEntries(
+		Object.entries(initialMapping).map(([k, v]) => [v, k])
+	);
 	const markerPrefix = 'VR_';
 
 	return {
