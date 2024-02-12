@@ -12,7 +12,11 @@ import {
 	TypeScriptWorker as ITypeScriptWorker
 } from './monaco.contribution';
 import { Uri, worker } from '../../fillers/monaco-editor-core';
-import { replaceVariablesWithMarkers, shouldWrapWithCircleBrackets } from '../../common/utils';
+import {
+	MARKER_REGEX,
+	replaceVariablesWithMarkers,
+	shouldWrapWithCircleBrackets
+} from '../../common/utils';
 
 /**
  * Loading a default lib as a source file will mess up TS completely.
@@ -276,7 +280,22 @@ export class TypeScriptWorker implements ts.LanguageServiceHost, ITypeScriptWork
 		if (fileNameIsLib(fileName)) {
 			return undefined;
 		}
-		return this._languageService.getCompletionsAtPosition(fileName, position, undefined);
+		const completionsInfo = this._languageService.getCompletionsAtPosition(
+			fileName,
+			position,
+			undefined
+		);
+
+		if (!completionsInfo) return undefined;
+
+		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+		// Prevent adding markers e.g. VR_var1_VR to completions list
+		return completionsInfo
+			? {
+					...completionsInfo,
+					entries: completionsInfo.entries.filter((entry) => !MARKER_REGEX.test(entry.name))
+			  }
+			: undefined;
 	}
 
 	async getCompletionEntryDetails(

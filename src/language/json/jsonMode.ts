@@ -179,7 +179,6 @@ const richEditConfiguration: languages.LanguageConfiguration = {
 	autoClosingPairs: [
 		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 		// Prevent auto-closing for curly and square brackets. It creates issues and affects search functionality for variables when autosuggestion is triggered.
-		// Requires deep investigation
 		// { open: '{', close: '}', notIn: ['string'] },
 		// { open: '[', close: ']', notIn: ['string'] },
 		{ open: '"', close: '"', notIn: ['string'] }

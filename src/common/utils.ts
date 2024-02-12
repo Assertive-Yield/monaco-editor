@@ -2,7 +2,7 @@ const VARIABLE_REGEX =
 	/\{\{\s(([_a-zA-Z0-9][_a-zA-Z0-9 ]*[_a-zA-Z0-9])|[_a-zA-Z0-9])\s\}\}(?=(?:(?:[^"]*"){2})*[^"]*$)/g;
 const PLACEHOLDER_REGEX =
 	/\[\[\s(([_a-zA-Z0-9][_a-zA-Z0-9 ]*[_a-zA-Z0-9])|[_a-zA-Z0-9])\s\]\](?=(?:(?:[^"]*"){2})*[^"]*$)/g;
-const MARKER_REGEX = /VR_([^\s]+)_VR/g;
+export const MARKER_REGEX = /VR_([^\s]+)_VR/g;
 
 export const CIRCLE_BRACKET_DIAGNOSTIC_OFFSET = 1;
 export const INLINE_CSS_ID = '#inline-styles-configuration';
