@@ -386,6 +386,7 @@ export interface LanguageServiceDefaults {
 }
 
 export interface TypeScriptWorker {
+	getMarkersMapping(): { [markerId: string]: string };
 	/**
 	 * Get diagnostic messages for any syntax issues in the given file.
 	 */

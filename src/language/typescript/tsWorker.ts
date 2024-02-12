@@ -12,11 +12,7 @@ import {
 	TypeScriptWorker as ITypeScriptWorker
 } from './monaco.contribution';
 import { Uri, worker } from '../../fillers/monaco-editor-core';
-import {
-	MARKER_REGEX,
-	replaceVariablesWithMarkers,
-	shouldWrapWithCircleBrackets
-} from '../../common/utils';
+import { replaceVariablesWithMarkers, shouldWrapWithCircleBrackets } from '../../common/utils';
 
 /**
  * Loading a default lib as a source file will mess up TS completely.
@@ -44,12 +40,14 @@ export class TypeScriptWorker implements ts.LanguageServiceHost, ITypeScriptWork
 	private _languageService = ts.createLanguageService(this);
 	private _compilerOptions: ts.CompilerOptions;
 	private _inlayHintsOptions?: ts.UserPreferences;
+	private _markersMapping: { [markerId: string]: string };
 
 	constructor(ctx: worker.IWorkerContext, createData: ICreateData) {
 		this._ctx = ctx;
 		this._compilerOptions = createData.compilerOptions;
 		this._extraLibs = createData.extraLibs;
 		this._inlayHintsOptions = createData.inlayHintsOptions;
+		this._markersMapping = {};
 	}
 
 	// --- language service host ---------------
@@ -128,12 +126,18 @@ export class TypeScriptWorker implements ts.LanguageServiceHost, ITypeScriptWork
 	// The syntax diagnostic recognizes it as an error, so simply wrap it with circular brackets.
 	private _convertToValidJS(input?: string) {
 		if (input === undefined) return;
-		let text = replaceVariablesWithMarkers(input);
+		const { text, markersMapping } = replaceVariablesWithMarkers(input, this._markersMapping);
+
+		this._markersMapping = markersMapping;
 
 		if (shouldWrapWithCircleBrackets(text)) {
-			text = `(${text})`;
+			return `(${text})`;
 		}
 		return text;
+	}
+
+	getMarkersMapping() {
+		return this._markersMapping;
 	}
 
 	getScriptSnapshot(fileName: string): ts.IScriptSnapshot | undefined {
@@ -280,22 +284,7 @@ export class TypeScriptWorker implements ts.LanguageServiceHost, ITypeScriptWork
 		if (fileNameIsLib(fileName)) {
 			return undefined;
 		}
-		const completionsInfo = this._languageService.getCompletionsAtPosition(
-			fileName,
-			position,
-			undefined
-		);
-
-		if (!completionsInfo) return undefined;
-
-		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
-		// Prevent adding markers e.g. VR_var1_VR to completions list
-		return completionsInfo
-			? {
-					...completionsInfo,
-					entries: completionsInfo.entries.filter((entry) => !MARKER_REGEX.test(entry.name))
-			  }
-			: undefined;
+		return this._languageService.getCompletionsAtPosition(fileName, position, undefined);
 	}
 
 	async getCompletionEntryDetails(

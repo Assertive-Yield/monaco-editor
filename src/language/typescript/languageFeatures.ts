@@ -484,7 +484,9 @@ export class SuggestAdapter extends Adapter implements languages.CompletionItemP
 			return;
 		}
 
-		const suggestions: MyCompletionItem[] = info.entries.map((entry) => {
+		const markersMapping = await worker.getMarkersMapping();
+
+		const suggestions = info.entries.reduce<MyCompletionItem[]>((acc, entry) => {
 			let range = wordRange;
 			if (entry.replacementSpan) {
 				const p1 = model.getPositionAt(entry.replacementSpan.start);
@@ -497,18 +499,29 @@ export class SuggestAdapter extends Adapter implements languages.CompletionItemP
 				tags.push(languages.CompletionItemTag.Deprecated);
 			}
 
-			return {
-				uri: resource,
-				position: position,
-				offset: offset,
-				range: range,
-				label: entry.name,
-				insertText: entry.name,
-				sortText: entry.sortText,
-				kind: SuggestAdapter.convertKind(entry.kind),
-				tags
-			};
-		});
+			// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+			// Skip adding markers to completions list
+			const isMarker = !!markersMapping[entry.name];
+
+			if (isMarker) {
+				return [...acc];
+			}
+
+			return [
+				...acc,
+				{
+					uri: resource,
+					position: position,
+					offset: offset,
+					range: range,
+					label: entry.name,
+					insertText: entry.name,
+					sortText: entry.sortText,
+					kind: SuggestAdapter.convertKind(entry.kind),
+					tags
+				}
+			];
+		}, []);
 
 		return {
 			suggestions

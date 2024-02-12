@@ -6,12 +6,7 @@
 import type { worker } from '../../fillers/monaco-editor-core';
 import * as cssService from 'vscode-css-languageservice';
 import { Options } from './monaco.contribution';
-import {
-	INLINE_CSS_ID,
-	isInlineConfig,
-	replaceMarkersWithVariables,
-	replaceVariablesWithMarkers
-} from '../../common/utils';
+import { INLINE_CSS_ID, isInlineConfig, replaceVariablesWithMarkers } from '../../common/utils';
 
 export class CSSWorker {
 	// --- model sync -----------------------
@@ -20,11 +15,13 @@ export class CSSWorker {
 	private _languageService: cssService.LanguageService;
 	private _languageSettings: Options;
 	private _languageId: string;
+	private _markersMapping: { [markerId: string]: string };
 
 	constructor(ctx: worker.IWorkerContext, createData: ICreateData) {
 		this._ctx = ctx;
 		this._languageSettings = createData.options;
 		this._languageId = createData.languageId;
+		this._markersMapping = {};
 
 		const data = createData.options.data;
 
@@ -206,6 +203,14 @@ export class CSSWorker {
 		const renames = this._languageService.doRename(document, position, newName, stylesheet);
 		return Promise.resolve(renames);
 	}
+
+	_replaceMarkersWithVariables(text: string) {
+		return Object.entries(this._markersMapping).reduce<string>(
+			(acc, [markerId, variable]) => acc.replace(markerId, variable),
+			text
+		);
+	}
+
 	async format(
 		uri: string,
 		range: cssService.Range | null,
@@ -224,7 +229,7 @@ export class CSSWorker {
 				// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 				// Replace markers with variables after validation
 				// Remove inline styles id
-				newText: replaceMarkersWithVariables(edit.newText.replace(INLINE_CSS_ID, '').trim())
+				newText: this._replaceMarkersWithVariables(edit.newText.replace(INLINE_CSS_ID, '').trim())
 			};
 		});
 		return Promise.resolve(updatedEdits);
@@ -243,11 +248,14 @@ export class CSSWorker {
 	// Diagnostic recognizes it as invalid syntax. And all IntelliSense features broke.
 	// Simply add #inline-styles-configuration id before validation
 	private _convertToValidCSS(modelValue: string) {
-		let result = replaceVariablesWithMarkers(modelValue);
-		if (isInlineConfig(result)) {
-			result = `${INLINE_CSS_ID}${result}`;
+		const { text, markersMapping } = replaceVariablesWithMarkers(modelValue, this._markersMapping);
+
+		this._markersMapping = markersMapping;
+
+		if (isInlineConfig(text)) {
+			return `${INLINE_CSS_ID}${text}`;
 		}
-		return result;
+		return text;
 	}
 
 	private _getTextDocument(uri: string): cssService.TextDocument | null {
