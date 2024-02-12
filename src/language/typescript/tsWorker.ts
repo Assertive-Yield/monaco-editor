@@ -41,14 +41,14 @@ export class TypeScriptWorker implements ts.LanguageServiceHost, ITypeScriptWork
 	private _languageService = ts.createLanguageService(this);
 	private _compilerOptions: ts.CompilerOptions;
 	private _inlayHintsOptions?: ts.UserPreferences;
-	private _markersMapping: TMarkersToVariablesMapping;
+	private _markersToVariablesMapping: TMarkersToVariablesMapping;
 
 	constructor(ctx: worker.IWorkerContext, createData: ICreateData) {
 		this._ctx = ctx;
 		this._compilerOptions = createData.compilerOptions;
 		this._extraLibs = createData.extraLibs;
 		this._inlayHintsOptions = createData.inlayHintsOptions;
-		this._markersMapping = {};
+		this._markersToVariablesMapping = {};
 	}
 
 	// --- language service host ---------------
@@ -127,9 +127,12 @@ export class TypeScriptWorker implements ts.LanguageServiceHost, ITypeScriptWork
 	// The syntax diagnostic recognizes it as an error, so simply wrap it with circular brackets.
 	private _convertToValidJS(input?: string) {
 		if (input === undefined) return;
-		const { text, markersMapping } = replaceVariablesWithMarkers(input, this._markersMapping);
+		const { text, markersToVariablesMapping } = replaceVariablesWithMarkers(
+			input,
+			this._markersToVariablesMapping
+		);
 
-		this._markersMapping = markersMapping;
+		this._markersToVariablesMapping = markersToVariablesMapping;
 
 		if (shouldWrapWithCircleBrackets(text)) {
 			return `(${text})`;
@@ -137,8 +140,8 @@ export class TypeScriptWorker implements ts.LanguageServiceHost, ITypeScriptWork
 		return text;
 	}
 
-	getMarkersMapping() {
-		return this._markersMapping;
+	getMarkersToVariablesMapping() {
+		return this._markersToVariablesMapping;
 	}
 
 	getScriptSnapshot(fileName: string): ts.IScriptSnapshot | undefined {

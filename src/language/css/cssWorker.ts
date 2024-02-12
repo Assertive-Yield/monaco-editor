@@ -16,13 +16,13 @@ export class CSSWorker {
 	private _languageService: cssService.LanguageService;
 	private _languageSettings: Options;
 	private _languageId: string;
-	private _markersMapping: TMarkersToVariablesMapping;
+	private _markersToVariablesMapping: TMarkersToVariablesMapping;
 
 	constructor(ctx: worker.IWorkerContext, createData: ICreateData) {
 		this._ctx = ctx;
 		this._languageSettings = createData.options;
 		this._languageId = createData.languageId;
-		this._markersMapping = {};
+		this._markersToVariablesMapping = {};
 
 		const data = createData.options.data;
 
@@ -206,7 +206,7 @@ export class CSSWorker {
 	}
 
 	_replaceMarkersWithVariables(text: string) {
-		return Object.entries(this._markersMapping).reduce<string>(
+		return Object.entries(this._markersToVariablesMapping).reduce<string>(
 			(acc, [markerId, variable]) => acc.replace(markerId, variable),
 			text
 		);
@@ -249,9 +249,12 @@ export class CSSWorker {
 	// Diagnostic recognizes it as invalid syntax. And all IntelliSense features broke.
 	// Simply add #inline-styles-configuration id before validation
 	private _convertToValidCSS(modelValue: string) {
-		const { text, markersMapping } = replaceVariablesWithMarkers(modelValue, this._markersMapping);
+		const { text, markersToVariablesMapping } = replaceVariablesWithMarkers(
+			modelValue,
+			this._markersToVariablesMapping
+		);
 
-		this._markersMapping = markersMapping;
+		this._markersToVariablesMapping = markersToVariablesMapping;
 
 		if (isInlineConfig(text)) {
 			return `${INLINE_CSS_ID}${text}`;

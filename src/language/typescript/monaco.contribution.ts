@@ -387,7 +387,7 @@ export interface LanguageServiceDefaults {
 }
 
 export interface TypeScriptWorker {
-	getMarkersMapping(): TMarkersToVariablesMapping;
+	getMarkersToVariablesMapping(): TMarkersToVariablesMapping;
 	/**
 	 * Get diagnostic messages for any syntax issues in the given file.
 	 */

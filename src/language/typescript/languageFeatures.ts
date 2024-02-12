@@ -484,7 +484,7 @@ export class SuggestAdapter extends Adapter implements languages.CompletionItemP
 			return;
 		}
 
-		const markersMapping = await worker.getMarkersMapping();
+		const markersToVariablesMapping = await worker.getMarkersToVariablesMapping();
 
 		const suggestions = info.entries.reduce<MyCompletionItem[]>((acc, entry) => {
 			let range = wordRange;
@@ -501,7 +501,7 @@ export class SuggestAdapter extends Adapter implements languages.CompletionItemP
 
 			// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 			// Skip adding markers to completions list
-			const isMarker = !!markersMapping[entry.name];
+			const isMarker = !!markersToVariablesMapping[entry.name];
 
 			if (isMarker) {
 				return [...acc];

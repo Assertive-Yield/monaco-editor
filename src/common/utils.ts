@@ -42,7 +42,7 @@ export const replaceVariablesWithMarkers = (
 				return markerId;
 			}
 		}),
-		markersMapping: markersToVariables
+		markersToVariablesMapping: markersToVariables
 	};
 };
 
