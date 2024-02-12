@@ -7,6 +7,7 @@ import type { worker } from '../../fillers/monaco-editor-core';
 import * as cssService from 'vscode-css-languageservice';
 import { Options } from './monaco.contribution';
 import { INLINE_CSS_ID, isInlineConfig, replaceVariablesWithMarkers } from '../../common/utils';
+import { TMarkersToVariablesMapping } from '../../common/types';
 
 export class CSSWorker {
 	// --- model sync -----------------------
@@ -15,7 +16,7 @@ export class CSSWorker {
 	private _languageService: cssService.LanguageService;
 	private _languageSettings: Options;
 	private _languageId: string;
-	private _markersMapping: { [markerId: string]: string };
+	private _markersMapping: TMarkersToVariablesMapping;
 
 	constructor(ctx: worker.IWorkerContext, createData: ICreateData) {
 		this._ctx = ctx;

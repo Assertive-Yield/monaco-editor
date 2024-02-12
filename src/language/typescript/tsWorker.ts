@@ -13,6 +13,7 @@ import {
 } from './monaco.contribution';
 import { Uri, worker } from '../../fillers/monaco-editor-core';
 import { replaceVariablesWithMarkers, shouldWrapWithCircleBrackets } from '../../common/utils';
+import { TMarkersToVariablesMapping } from '../../common/types';
 
 /**
  * Loading a default lib as a source file will mess up TS completely.
@@ -40,7 +41,7 @@ export class TypeScriptWorker implements ts.LanguageServiceHost, ITypeScriptWork
 	private _languageService = ts.createLanguageService(this);
 	private _compilerOptions: ts.CompilerOptions;
 	private _inlayHintsOptions?: ts.UserPreferences;
-	private _markersMapping: { [markerId: string]: string };
+	private _markersMapping: TMarkersToVariablesMapping;
 
 	constructor(ctx: worker.IWorkerContext, createData: ICreateData) {
 		this._ctx = ctx;

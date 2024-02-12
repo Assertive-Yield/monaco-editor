@@ -1,3 +1,5 @@
+import { TMarkersToVariablesMapping, TVariablesToMarkersMapping } from './types';
+
 const VARIABLE_REGEX =
 	/\{\{\s(([_a-zA-Z0-9][_a-zA-Z0-9 ]*[_a-zA-Z0-9])|[_a-zA-Z0-9])\s\}\}(?=(?:(?:[^"]*"){2})*[^"]*$)/g;
 const PLACEHOLDER_REGEX =
@@ -19,12 +21,12 @@ function generateMarkerId(length: number) {
 // Note: identifier length should match variable's length. In opposite case diagnostic markers will have incorrect positions.
 export const replaceVariablesWithMarkers = (
 	text: string,
-	initialMapping: { [markerId: string]: string }
+	initialMapping: TMarkersToVariablesMapping
 ) => {
-	const markersToVariables: { [markerId: string]: string } = { ...initialMapping };
-	const variablesToMarkersIds: { [variable: string]: string } = {};
+	const markersToVariables: TMarkersToVariablesMapping = { ...initialMapping };
+	const variablesToMarkersIds: TVariablesToMarkersMapping = {};
 
-	const markerPrefix = 'vr_';
+	const markerPrefix = 'VR_';
 
 	return {
 		text: text.replace(VARIABLE_REGEX, (variable) => {
