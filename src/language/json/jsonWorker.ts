@@ -7,7 +7,7 @@ import * as jsonService from 'vscode-json-languageservice';
 import type { worker } from '../../fillers/monaco-editor-core';
 import { URI } from 'vscode-uri';
 import { DiagnosticsOptions } from './monaco.contribution';
-import { wrapPlaceholdersAndVariablesWithQuotes } from '../../common/utils';
+import { convertToValidJSON } from '../../common/utils';
 
 let defaultSchemaRequestService: ((url: string) => Promise<string>) | undefined;
 if (typeof fetch !== 'undefined') {
@@ -166,7 +166,7 @@ export class JSONWorker {
 	// Replace variables and placeholder with valid JSON values before validation.
 	// Simply wrap them with quotes e.g. "{{ var1 }}" "[[ placeholder1 ]]"
 	private _convertToValidJSON(text: string) {
-		return wrapPlaceholdersAndVariablesWithQuotes(text);
+		return convertToValidJSON(text);
 	}
 
 	private _getTextDocument(uri: string): jsonService.TextDocument | null {

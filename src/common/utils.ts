@@ -23,11 +23,11 @@ export const replaceVariablesWithMarkers = (
 	text: string,
 	initialMapping: TMarkersToVariablesMapping
 ) => {
+	const MARKER_PREFIX = 'VR_';
 	const markersToVariables: TMarkersToVariablesMapping = { ...initialMapping };
 	const variablesToMarkersIds: TVariablesToMarkersMapping = Object.fromEntries(
 		Object.entries(initialMapping).map(([k, v]) => [v, k])
 	);
-	const markerPrefix = 'VR_';
 
 	return {
 		text: text.replace(VARIABLE_REGEX, (variable) => {
@@ -35,8 +35,8 @@ export const replaceVariablesWithMarkers = (
 				const markerId = variablesToMarkersIds[variable];
 				return markerId;
 			} else {
-				const markerId = `${markerPrefix}${generateMarkerId(
-					variable.length - markerPrefix.length
+				const markerId = `${MARKER_PREFIX}${generateMarkerId(
+					variable.length - MARKER_PREFIX.length
 				)}`;
 				variablesToMarkersIds[variable] = markerId;
 				markersToVariables[markerId] = variable;
@@ -52,7 +52,7 @@ export const replaceVariablesWithMarkers = (
 // Note: The length of wrapped placeholders and variables should match the initial length of placeholders and variables.
 // Cut the first "[" and last "]" of placeholder definitions because quotes take their positions while diagnostics performing. The same applies to variables; cut the first "{" and last "}".
 // In opposite case diagnostic markers will have incorrect positions.
-export const wrapPlaceholdersAndVariablesWithQuotes = (text: string) =>
+export const convertToValidJSON = (text: string) =>
 	text.replace(
 		new RegExp(`${PLACEHOLDER_REGEX.source}|${VARIABLE_REGEX.source}`, 'g'),
 		(target) => `"${target.slice(1, target.length - 1)}"`
@@ -61,5 +61,5 @@ export const wrapPlaceholdersAndVariablesWithQuotes = (text: string) =>
 // Checks if code block starts with "{"
 export const isInlineConfig = (text: string) => /^\s*{/.test(text);
 
-// Checks if code block starts with "{" or "function() {..."
+// JS: Checks if code block starts with "{" or "function() {..."
 export const shouldWrapWithCircleBrackets = (text: string) => /^\s*({|function\s*())/.test(text);

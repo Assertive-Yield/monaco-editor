@@ -504,7 +504,7 @@ export class SuggestAdapter extends Adapter implements languages.CompletionItemP
 			const isMarker = !!markersToVariablesMapping[entry.name];
 
 			if (isMarker) {
-				return [...acc];
+				return acc;
 			}
 
 			return [
