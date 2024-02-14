@@ -207,7 +207,7 @@ export class CSSWorker {
 
 	_replaceMarkersWithVariables(text: string) {
 		return Object.entries(this._markersToVariablesMapping).reduce<string>(
-			(acc, [markerId, variable]) => acc.replace(markerId, variable),
+			(acc, [markerId, variable]) => acc.replaceAll(markerId, variable),
 			text
 		);
 	}
