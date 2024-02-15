@@ -62,4 +62,11 @@ export const convertToValidJSON = (text: string) =>
 export const isInlineConfig = (text: string) => /^\s*{/.test(text);
 
 // JS: Checks if code block starts with "{" or "function() {..."
-export const shouldWrapWithCircleBrackets = (text: string) => /^\s*({|function\s*())/.test(text);
+export const shouldWrapWithCircleBrackets = (text: string) => {
+	// Remove leading white-spaces and comments
+	const trimmedText = text.replace(/\/\/.*$/gm, '').trim();
+	// Regex pattern for matching
+	const pattern = /^(?:{|\s*function\s*\(\s*\)\s*{)/;
+
+	return pattern.test(trimmedText);
+};
