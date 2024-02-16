@@ -229,7 +229,7 @@ export const language = {
 		root: [
 			// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 			// Added token regexp for coloring variables e.g. {{ var1 }}
-			[/\{\{\s*(([_a-zA-Z0-9][_a-zA-Z0-9 ]*[_a-zA-Z0-9])|[_a-zA-Z0-9])\s*\}\}/, 'keyword'],
+			[/\{\{[ \t]*(([_a-zA-Z0-9][_a-zA-Z0-9 ]*[_a-zA-Z0-9])|[_a-zA-Z0-9])[ \t]*\}\}/, 'keyword'],
 			[/[{}]/, 'delimiter.bracket'],
 			{ include: 'common' }
 		],

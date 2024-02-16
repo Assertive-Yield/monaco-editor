@@ -1,9 +1,9 @@
 import { TMarkersToVariablesMapping, TVariablesToMarkersMapping } from './types';
 
 const VARIABLE_REGEX =
-	/\{\{\s*(([_a-zA-Z0-9][_a-zA-Z0-9 ]*[_a-zA-Z0-9])|[_a-zA-Z0-9])\s*\}\}(?=(?:(?:[^"]*"){2})*[^"]*$)/g;
+	/\{\{[ \t]*(([_a-zA-Z0-9][_a-zA-Z0-9 ]*[_a-zA-Z0-9])|[_a-zA-Z0-9])[ \t]*\}\}(?=(?:(?:[^"]*"){2})*[^"]*$)/g;
 const PLACEHOLDER_REGEX =
-	/(\[\[ *)(((\w[\w ]*)([a-zA-Z]+)([\w ]*\w))|((\w[\w ]*)([a-zA-Z]+))|(([a-zA-Z]+)([\w ]*\w)))( *\]\])(?=(?:(?:[^"]*"){2})*[^"]*$)/g;
+	/(\[\[[ \t]*)(((\w[\w ]*)([a-zA-Z]+)([\w ]*\w))|((\w[\w ]*)([a-zA-Z]+))|(([a-zA-Z]+)([\w ]*\w)))([ \t]*\]\])(?=(?:(?:[^"]*"){2})*[^"]*$)/g;
 
 export const CIRCLE_BRACKET_DIAGNOSTIC_OFFSET = 1;
 export const INLINE_CSS_ID = '#inline-styles-configuration';
