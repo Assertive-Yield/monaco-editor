@@ -54,7 +54,7 @@ export const language = <languages.IMonarchLanguage>{
 	identifier:
 		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 		// Added identifier regexp for coloring variables e.g. {{ var1 }}
-		'-?-?([a-zA-Z]|(\\\\(([0-9a-fA-F]{1,6}\\s?)|[^[0-9a-fA-F])))([\\w\\-]|(\\\\(([0-9a-fA-F]{1,6}\\s?)|[^[0-9a-fA-F])))*|(\\{\\{[ \\t]*(([_a-zA-Z0-9][_a-zA-Z0-9 ]*[_a-zA-Z0-9])|[_a-zA-Z0-9])[ \\t]*\\}\\})',
+		'-?-?([a-zA-Z]|(\\\\(([0-9a-fA-F]{1,6}\\s?)|[^[0-9a-fA-F])))([\\w\\-]|(\\\\(([0-9a-fA-F]{1,6}\\s?)|[^[0-9a-fA-F])))*|(\\{\\{ *(([_a-zA-Z0-9][_a-zA-Z0-9 ]*[_a-zA-Z0-9])((.[_a-zA-Z0-9]+)*)) *\\}\\})',
 
 	brackets: [
 		{ open: '{', close: '}', token: 'delimiter.bracket' },
