@@ -1,6 +1,6 @@
 {
 	"name": "ay-test-code-editor",
-	"version": "0.45.30",
+	"version": "0.45.31",
 	"vscodeRef": "af28b32d7e553898b2a91af498b1fb666fdebe0c",
 	"private": false,
 	"description": "A browser based code editor",
