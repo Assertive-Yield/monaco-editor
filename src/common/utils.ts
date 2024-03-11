@@ -21,7 +21,8 @@ function generateMarkerId(length: number) {
 // Note: identifier length should match variable's length. In opposite case diagnostic markers will have incorrect positions.
 export const replaceVariablesWithMarkers = (
 	text: string,
-	initialMapping: TMarkersToVariablesMapping
+	initialMapping: TMarkersToVariablesMapping,
+	allowPlaceholders = false
 ) => {
 	const MARKER_PREFIX = 'VR_';
 	const markersToVariables: TMarkersToVariablesMapping = { ...initialMapping };
@@ -29,8 +30,12 @@ export const replaceVariablesWithMarkers = (
 		Object.entries(initialMapping).map(([k, v]) => [v, k])
 	);
 
+	const regexp = allowPlaceholders
+		? new RegExp(`${PLACEHOLDER_REGEX.source}|${VARIABLE_REGEX.source}`, 'g')
+		: VARIABLE_REGEX;
+
 	return {
-		text: text.replace(VARIABLE_REGEX, (variable) => {
+		text: text.replace(regexp, (variable) => {
 			if (variablesToMarkersIds[variable]) {
 				const markerId = variablesToMarkersIds[variable];
 				return markerId;

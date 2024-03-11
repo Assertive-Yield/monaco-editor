@@ -62,7 +62,7 @@ export const conf: languages.LanguageConfiguration = {
 		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
 		// Prevent auto-closing for curly brackets. When user starts typing curly brackets e.g. "{{Some var1..." and suggestions widget is triggered it is better not to close brackets automatically as it changes user experience compare with previous "CodeMirror" editor..
 		// { open: '{', close: '}' },
-		{ open: '[', close: ']' },
+		// { open: '[', close: ']' },
 		{ open: '(', close: ')' },
 		{ open: '"', close: '"', notIn: ['string'] },
 		{ open: "'", close: "'", notIn: ['string', 'comment'] },

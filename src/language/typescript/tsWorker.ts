@@ -129,7 +129,8 @@ export class TypeScriptWorker implements ts.LanguageServiceHost, ITypeScriptWork
 		if (input === undefined) return;
 		const { text, markersToVariablesMapping } = replaceVariablesWithMarkers(
 			input,
-			this._markersToVariablesMapping
+			this._markersToVariablesMapping,
+			true
 		);
 
 		this._markersToVariablesMapping = markersToVariablesMapping;
