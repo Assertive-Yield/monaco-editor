@@ -772,10 +772,22 @@ export class DocumentHighlightAdapter
 			return;
 		}
 
+		const currentValue = model.getValue();
+
 		return entries.flatMap((entry) => {
 			return entry.highlightSpans.map((highlightSpans) => {
 				return <languages.DocumentHighlight>{
-					range: this._textSpanToRange(model, highlightSpans.textSpan),
+					range: this._textSpanToRange(model, {
+						...highlightSpans.textSpan,
+						// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+						// In some cases, such as defining "Custom Javascript" variables, a script may contain a single unnamed function like "function() {...}".
+						// Alternatively, the script can contain just a single JS object without assigning it to a variable.
+						// In such cases, we wrap the code with circular brackets like (function() {...}) or ({...}) before validation.
+						// Adjust highlight  positions by subtracting the offset of the circular bracket "(".
+						start: shouldWrapWithCircleBrackets(currentValue)
+							? highlightSpans.textSpan.start - CIRCLE_BRACKET_DIAGNOSTIC_OFFSET
+							: highlightSpans.textSpan.start
+					}),
 					kind:
 						highlightSpans.kind === 'writtenReference'
 							? languages.DocumentHighlightKind.Write
