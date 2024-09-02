@@ -6,6 +6,7 @@
 import type * as mode from './tsMode';
 import { typescriptVersion as tsversion } from './lib/typescriptServicesMetadata'; // do not import the whole typescriptServices here
 import { languages, Emitter, IEvent, IDisposable, Uri } from '../../fillers/monaco-editor-core';
+import { TMarkersToVariablesMapping } from '../../common/types';
 
 //#region enums copied from typescript to prevent loading the entire typescriptServices ---
 
@@ -386,6 +387,7 @@ export interface LanguageServiceDefaults {
 }
 
 export interface TypeScriptWorker {
+	getMarkersToVariablesMapping(): TMarkersToVariablesMapping;
 	/**
 	 * Get diagnostic messages for any syntax issues in the given file.
 	 */

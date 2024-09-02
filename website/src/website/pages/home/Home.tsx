@@ -133,7 +133,7 @@ class EditorDemo extends React.Component {
 		loadMonaco().then((m) => {
 			const languages = m.languages.getLanguages();
 			this.currentLanguage = languages.find(
-				(l) => l.id === "typescript"
+				(l) => l.id === "javascript"
 			)!;
 			return languages;
 		})
@@ -195,7 +195,7 @@ class EditorDemo extends React.Component {
 					<div className="col">
 						<label className="control-label">Language</label>
 						<Select<monaco.languages.ILanguageExtensionPoint>
-							values={this.languages.value || []}
+							values={this.languages.value?.filter((l) => ['css', 'html', 'javascript', 'json'].includes(l.id)) || []}
 							getLabel={(l) => l.id}
 							value={ref(this, "currentLanguage")}
 						/>
