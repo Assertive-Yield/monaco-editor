@@ -24,6 +24,7 @@ import {
 	MarkerTag,
 	MarkerSeverity
 } from '../../fillers/monaco-editor-core';
+import { CIRCLE_BRACKET_DIAGNOSTIC_OFFSET, shouldWrapWithCircleBrackets } from '../../common/utils';
 
 //#region utils copied from typescript to prevent loading the entire typescriptServices ---
 
@@ -334,16 +335,34 @@ export class DiagnosticsAdapter extends Adapter {
 			return;
 		}
 
-		editor.setModelMarkers(
-			model,
-			this._selector,
-			diagnostics.map((d) => this._convertDiagnostics(model, d))
-		);
+		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+		// We need to track when validation is finished.
+		// However, "onDidChangeMarkers" only runs when the marker count is greater than 0.
+		// There is not possibility to add handler like "onValidationSuccess/onValidationFailure," etc.
+		// Simply provide an empty marker object to trigger the event.
+		editor.setModelMarkers(model, this._selector, [
+			{
+				// Provide empty marker data to fire "monaco.editor.onDidChangeMarkers" listener
+			} as any,
+			...diagnostics.map((d) => this._convertDiagnostics(model, d))
+		]);
 	}
 
 	private _convertDiagnostics(model: editor.ITextModel, diag: Diagnostic): editor.IMarkerData {
-		const diagStart = diag.start || 0;
+		const text = model.getValue();
+
+		let diagStart = diag.start || 0;
 		const diagLength = diag.length || 1;
+
+		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+		// In some cases, such as defining "Custom Javascript" variables, a script may contain a single unnamed function like "function() {...}".
+		// Alternatively, the script can contain just a single JS object without assigning it to a variable.
+		// In such cases, we wrap the code with circular brackets like (function() {...}) or ({...}) before validation.
+		// Adjust markers positions by subtracting the offset of the circular bracket "(".
+		if (shouldWrapWithCircleBrackets(text)) {
+			diagStart = diagStart - CIRCLE_BRACKET_DIAGNOSTIC_OFFSET;
+		}
+
 		const { lineNumber: startLineNumber, column: startColumn } = model.getPositionAt(diagStart);
 		const { lineNumber: endLineNumber, column: endColumn } = model.getPositionAt(
 			diagStart + diagLength
@@ -465,7 +484,9 @@ export class SuggestAdapter extends Adapter implements languages.CompletionItemP
 			return;
 		}
 
-		const suggestions: MyCompletionItem[] = info.entries.map((entry) => {
+		const markersToVariablesMapping = await worker.getMarkersToVariablesMapping();
+
+		const suggestions = info.entries.reduce<MyCompletionItem[]>((acc, entry) => {
 			let range = wordRange;
 			if (entry.replacementSpan) {
 				const p1 = model.getPositionAt(entry.replacementSpan.start);
@@ -478,18 +499,29 @@ export class SuggestAdapter extends Adapter implements languages.CompletionItemP
 				tags.push(languages.CompletionItemTag.Deprecated);
 			}
 
-			return {
-				uri: resource,
-				position: position,
-				offset: offset,
-				range: range,
-				label: entry.name,
-				insertText: entry.name,
-				sortText: entry.sortText,
-				kind: SuggestAdapter.convertKind(entry.kind),
-				tags
-			};
-		});
+			// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+			// Skip adding markers to completions list
+			const isMarker = !!markersToVariablesMapping[entry.name];
+
+			if (isMarker) {
+				return acc;
+			}
+
+			return [
+				...acc,
+				{
+					uri: resource,
+					position: position,
+					offset: offset,
+					range: range,
+					label: entry.name,
+					insertText: entry.name,
+					sortText: entry.sortText,
+					kind: SuggestAdapter.convertKind(entry.kind),
+					tags
+				}
+			];
+		}, []);
 
 		return {
 			suggestions
@@ -740,10 +772,22 @@ export class DocumentHighlightAdapter
 			return;
 		}
 
+		const currentValue = model.getValue();
+
 		return entries.flatMap((entry) => {
 			return entry.highlightSpans.map((highlightSpans) => {
 				return <languages.DocumentHighlight>{
-					range: this._textSpanToRange(model, highlightSpans.textSpan),
+					range: this._textSpanToRange(model, {
+						...highlightSpans.textSpan,
+						// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+						// In some cases, such as defining "Custom Javascript" variables, a script may contain a single unnamed function like "function() {...}".
+						// Alternatively, the script can contain just a single JS object without assigning it to a variable.
+						// In such cases, we wrap the code with circular brackets like (function() {...}) or ({...}) before validation.
+						// Adjust highlight  positions by subtracting the offset of the circular bracket "(".
+						start: shouldWrapWithCircleBrackets(currentValue)
+							? highlightSpans.textSpan.start - CIRCLE_BRACKET_DIAGNOSTIC_OFFSET
+							: highlightSpans.textSpan.start
+					}),
 					kind:
 						highlightSpans.kind === 'writtenReference'
 							? languages.DocumentHighlightKind.Write
@@ -1023,7 +1067,24 @@ export class FormatAdapter
 			return;
 		}
 
-		return edits.map((edit) => this._convertTextChanges(model, edit));
+		const previousText = model.getValue();
+
+		return edits.map((edit) =>
+			this._convertTextChanges(model, {
+				...edit,
+				span: {
+					...edit.span,
+					// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+					// In some cases, such as defining "Custom Javascript" variables, a script may contain a single unnamed function like "function() {...}".
+					// Alternatively, the script can contain just a single JS object without assigning it to a variable.
+					// In such cases, we wrap the code with circular brackets like (function() {...}) or ({...}) before validation.
+					// Adjust formatting edits  positions by subtracting the offset of the circular bracket "(".
+					start: shouldWrapWithCircleBrackets(previousText)
+						? edit.span.start - CIRCLE_BRACKET_DIAGNOSTIC_OFFSET
+						: edit.span.start
+				}
+			})
+		);
 	}
 }
 

@@ -89,9 +89,7 @@ function loadScript(path: string): Promise<void> {
 	});
 }
 
-export const prodMonacoSetup = getMonacoSetup(
-	"node_modules/monaco-editor/min/vs"
-);
+export const prodMonacoSetup = getMonacoSetup("out/monaco-editor/min/vs");
 
 export function getMonacoSetup(corePath: string): IMonacoSetup {
 	const loaderConfigPaths = {

@@ -170,13 +170,17 @@ const richEditConfiguration: languages.LanguageConfiguration = {
 	},
 
 	brackets: [
-		['{', '}'],
-		['[', ']']
+		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+		// Disable brackets as they have a higher priority in the tokenization process compared to custom variables and placeholders, e.g., {{ var1 }} or [[ placeholder1 ]], and affect bracket coloring.
+		// ['{', '}'],
+		// ['[', ']']
 	],
 
 	autoClosingPairs: [
-		{ open: '{', close: '}', notIn: ['string'] },
-		{ open: '[', close: ']', notIn: ['string'] },
+		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+		// Prevent auto-closing for curly and square brackets. When user starts typing curly brackets e.g. "{{Some var1..." and suggestions widget is triggered it is better not to close brackets automatically as it changes user experience compare with previous "CodeMirror" editor..
+		// { open: '{', close: '}', notIn: ['string'] },
+		// { open: '[', close: ']', notIn: ['string'] },
 		{ open: '"', close: '"', notIn: ['string'] }
 	]
 };

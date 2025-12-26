@@ -12,6 +12,8 @@ import {
 	TypeScriptWorker as ITypeScriptWorker
 } from './monaco.contribution';
 import { Uri, worker } from '../../fillers/monaco-editor-core';
+import { replaceVariablesWithMarkers, shouldWrapWithCircleBrackets } from '../../common/utils';
+import { TMarkersToVariablesMapping } from '../../common/types';
 
 /**
  * Loading a default lib as a source file will mess up TS completely.
@@ -39,12 +41,14 @@ export class TypeScriptWorker implements ts.LanguageServiceHost, ITypeScriptWork
 	private _languageService = ts.createLanguageService(this);
 	private _compilerOptions: ts.CompilerOptions;
 	private _inlayHintsOptions?: ts.UserPreferences;
+	private _markersToVariablesMapping: TMarkersToVariablesMapping;
 
 	constructor(ctx: worker.IWorkerContext, createData: ICreateData) {
 		this._ctx = ctx;
 		this._compilerOptions = createData.compilerOptions;
 		this._extraLibs = createData.extraLibs;
 		this._inlayHintsOptions = createData.inlayHintsOptions;
+		this._markersToVariablesMapping = {};
 	}
 
 	// --- language service host ---------------
@@ -116,8 +120,34 @@ export class TypeScriptWorker implements ts.LanguageServiceHost, ITypeScriptWork
 		return text;
 	}
 
+	// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+	// Replace variables with valid markers before validation.
+	// In some cases, like defining "Custom Javascript" variables, we need to have a script containing single unnamed functions like "function() {...}".
+	// Alternatively, the script can contain just a single JS object without assigning it to a variable.
+	// The syntax diagnostic recognizes it as an error, so simply wrap it with circular brackets.
+	private _convertToValidJS(input?: string) {
+		if (input === undefined) return;
+		const { text, markersToVariablesMapping } = replaceVariablesWithMarkers(
+			input,
+			this._markersToVariablesMapping,
+			true
+		);
+
+		this._markersToVariablesMapping = markersToVariablesMapping;
+
+		if (shouldWrapWithCircleBrackets(text)) {
+			return `(${text})`;
+		}
+		return text;
+	}
+
+	getMarkersToVariablesMapping() {
+		return this._markersToVariablesMapping;
+	}
+
 	getScriptSnapshot(fileName: string): ts.IScriptSnapshot | undefined {
-		const text = this._getScriptText(fileName);
+		const text = this._convertToValidJS(this._getScriptText(fileName));
+
 		if (text === undefined) {
 			return;
 		}

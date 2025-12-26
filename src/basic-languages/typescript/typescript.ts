@@ -15,7 +15,9 @@ export const conf: languages.LanguageConfiguration = {
 	},
 
 	brackets: [
-		['{', '}'],
+		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+		// Disable brackets as they have a higher priority in the tokenization process compared to custom variables, e.g., {{ var1 }}, and affect bracket coloring.
+		// ['{', '}'],
 		['[', ']'],
 		['(', ')']
 	],
@@ -57,8 +59,10 @@ export const conf: languages.LanguageConfiguration = {
 	],
 
 	autoClosingPairs: [
-		{ open: '{', close: '}' },
-		{ open: '[', close: ']' },
+		// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+		// Prevent auto-closing for curly brackets. When user starts typing curly brackets e.g. "{{Some var1..." and suggestions widget is triggered it is better not to close brackets automatically as it changes user experience compare with previous "CodeMirror" editor..
+		// { open: '{', close: '}' },
+		// { open: '[', close: ']' },
 		{ open: '(', close: ')' },
 		{ open: '"', close: '"', notIn: ['string'] },
 		{ open: "'", close: "'", notIn: ['string', 'comment'] },
@@ -222,7 +226,13 @@ export const language = {
 
 	// The main tokenizer for our languages
 	tokenizer: {
-		root: [[/[{}]/, 'delimiter.bracket'], { include: 'common' }],
+		root: [
+			// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+			// Added token regexp for coloring variables e.g. {{ var1.property }}
+			[/\{\{ *(([_a-zA-Z0-9][_a-zA-Z0-9 ]*[_a-zA-Z0-9])((.[_a-zA-Z0-9]+)*)) *\}\}/, 'keyword'],
+			[/[{}]/, 'delimiter.bracket'],
+			{ include: 'common' }
+		],
 
 		common: [
 			// identifiers and keywords

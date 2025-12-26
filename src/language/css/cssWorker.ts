@@ -6,6 +6,8 @@
 import type { worker } from '../../fillers/monaco-editor-core';
 import * as cssService from 'vscode-css-languageservice';
 import { Options } from './monaco.contribution';
+import { INLINE_CSS_ID, isInlineConfig, replaceVariablesWithMarkers } from '../../common/utils';
+import { TMarkersToVariablesMapping } from '../../common/types';
 
 export class CSSWorker {
 	// --- model sync -----------------------
@@ -14,11 +16,13 @@ export class CSSWorker {
 	private _languageService: cssService.LanguageService;
 	private _languageSettings: Options;
 	private _languageId: string;
+	private _markersToVariablesMapping: TMarkersToVariablesMapping;
 
 	constructor(ctx: worker.IWorkerContext, createData: ICreateData) {
 		this._ctx = ctx;
 		this._languageSettings = createData.options;
 		this._languageId = createData.languageId;
+		this._markersToVariablesMapping = {};
 
 		const data = createData.options.data;
 
@@ -200,6 +204,14 @@ export class CSSWorker {
 		const renames = this._languageService.doRename(document, position, newName, stylesheet);
 		return Promise.resolve(renames);
 	}
+
+	_replaceMarkersWithVariables(text: string) {
+		return Object.entries(this._markersToVariablesMapping).reduce<string>(
+			(acc, [markerId, variable]) => acc.replaceAll(markerId, variable),
+			text
+		);
+	}
+
 	async format(
 		uri: string,
 		range: cssService.Range | null,
@@ -211,18 +223,51 @@ export class CSSWorker {
 		}
 		const settings = { ...this._languageSettings.format, ...options };
 		const textEdits = this._languageService.format(document, range! /* TODO */, settings);
-		return Promise.resolve(textEdits);
+
+		const updatedEdits = textEdits.map((edit) => {
+			return {
+				...edit,
+				// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+				// Replace markers with variables after validation
+				// Remove inline styles id
+				newText: this._replaceMarkersWithVariables(edit.newText.replace(INLINE_CSS_ID, '').trim())
+			};
+		});
+		return Promise.resolve(updatedEdits);
 	}
+
+	// Issue: https://gitlab.com/assertiveyield/assertiveAnalytics/-/issues/2524
+	// Replace variables with valid markers before validation.
+	// In some cases we need to define inline styles.
+	// E.g.
+	// {
+	// 	width: 16px;
+	// 	color: {{ Brand Color }};
+	// 	border-radius: 5px;
+	// }
+	// It does not contain any class name or identifier
+	// Diagnostic recognizes it as invalid syntax. And all IntelliSense features broke.
+	// Simply add #inline-styles-configuration id before validation
+	private _convertToValidCSS(modelValue: string) {
+		const { text, markersToVariablesMapping } = replaceVariablesWithMarkers(
+			modelValue,
+			this._markersToVariablesMapping
+		);
+
+		this._markersToVariablesMapping = markersToVariablesMapping;
+
+		if (isInlineConfig(text)) {
+			return `${INLINE_CSS_ID}${text}`;
+		}
+		return text;
+	}
+
 	private _getTextDocument(uri: string): cssService.TextDocument | null {
 		const models = this._ctx.getMirrorModels();
 		for (const model of models) {
 			if (model.uri.toString() === uri) {
-				return cssService.TextDocument.create(
-					uri,
-					this._languageId,
-					model.version,
-					model.getValue()
-				);
+				const cssString = this._convertToValidCSS(model.getValue());
+				return cssService.TextDocument.create(uri, this._languageId, model.version, cssString);
 			}
 		}
 		return null;

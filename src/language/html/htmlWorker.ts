@@ -7,6 +7,10 @@ import { worker } from '../../fillers/monaco-editor-core';
 import * as htmlService from 'vscode-html-languageservice';
 import type { Options } from './monaco.contribution';
 import { IHTMLDataProvider } from 'vscode-html-languageservice';
+import * as htmlParser from 'parse5';
+import * as acorn from 'acorn';
+import * as cssTree from 'css-tree';
+import { replaceVariablesWithMarkers } from '../../common/utils';
 
 export class HTMLWorker {
 	private _ctx: worker.IWorkerContext;
@@ -52,6 +56,129 @@ export class HTMLWorker {
 			)
 		);
 	}
+
+	validateCodeInNodes(node: any, markers: any[] = []) {
+		if ((node.nodeName === 'style' || node.nodeName === 'script') && node.childNodes) {
+			const codeNode = node.childNodes.find((child: any) => child.nodeName === '#text');
+
+			if (codeNode) {
+				const codeValue = codeNode.value ?? '';
+
+				const nodeLine = codeNode?.sourceCodeLocation?.startLine ?? 0;
+				const lineOffset = nodeLine > 0 ? nodeLine - 1 : 0;
+
+				if (node.nodeName === 'style') {
+					const { text: cssCode } = replaceVariablesWithMarkers(codeValue, {});
+
+					cssTree.parse(cssCode, {
+						parseValue: true,
+						parseRulePrelude: true,
+						onParseError: (error: any) => {
+							const line = error.line + lineOffset - 1;
+							const character = error.column - 1;
+
+							markers.push({
+								severity: 1,
+								message: error.message,
+								range: {
+									start: {
+										line,
+										character
+									},
+									end: {
+										line: error.line + lineOffset - 1,
+										character
+									}
+								},
+								code: error.message
+							});
+						}
+					});
+				} else {
+					const { text: jsCode } = replaceVariablesWithMarkers(codeValue, {});
+
+					try {
+						acorn.parse(jsCode, {
+							ecmaVersion: 'latest',
+							sourceType:
+								// Detect <script type="module"> for correct sourceType
+								Array.isArray((node as any).attrs) &&
+								(node as any).attrs.some(
+									(a: any) =>
+										a?.name?.toLowerCase() === 'type' &&
+										String(a?.value)?.toLowerCase() === 'module'
+								)
+									? 'module'
+									: 'script',
+							locations: true
+						});
+					} catch (error: any) {
+						const line = (error?.loc?.line ?? 1) + lineOffset - 1;
+						const column = error?.loc?.column ?? 1;
+
+						markers.push({
+							severity: 1,
+							message: error?.message ?? 'Invalid JavaScript syntax.',
+							range: {
+								start: {
+									line: line,
+									character: column - 1
+								},
+								end: {
+									line: line,
+									character: column
+								}
+							},
+							code: error.message
+						});
+					}
+				}
+			}
+		}
+
+		if (node.childNodes) {
+			for (const child of node.childNodes) {
+				this.validateCodeInNodes(child, markers);
+			}
+		}
+	}
+
+	async doValidation(uri: string): Promise<any[]> {
+		const document = this._getTextDocument(uri);
+
+		if (document) {
+			const markers: any[] = [];
+			const code = document.getText();
+
+			// Validate HTML type
+			const parsedHTML = htmlParser.parseFragment(code, {
+				sourceCodeLocationInfo: true,
+				onParseError: (error) => {
+					markers.push({
+						severity: 1,
+						message: error.code,
+						range: {
+							start: { line: error.startLine - 1, character: error.startCol - 1 },
+							end: {
+								line: error.endLine - 1,
+								character: error.endCol - 1
+							}
+						},
+						code: error.code
+					});
+				}
+			});
+
+			if (markers.length === 0) {
+				this.validateCodeInNodes(parsedHTML, markers);
+			}
+
+			return Promise.resolve(markers);
+		} else {
+			return Promise.resolve([]);
+		}
+	}
+
 	async format(
 		uri: string,
 		range: htmlService.Range,

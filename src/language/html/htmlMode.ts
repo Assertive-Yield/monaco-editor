@@ -148,6 +148,10 @@ export function setupMode(defaults: LanguageServiceDefaults): IDisposable {
 				)
 			);
 		}
+
+		providers.push(
+			new languageFeatures.DiagnosticsAdapter(languageId, worker, defaults.onDidChange)
+		);
 	}
 
 	registerProviders();
